@@ -38,14 +38,19 @@ def call_groq(api_key: str, system_prompt: str, user_message: str, model: str = 
     for model_name in models_to_try:
         is_fallback = model_name == FALLBACK_MODEL
         
+        # Fallback model daha kiçik token limiti var — konteksti qısalt
+        current_message = user_message
+        if is_fallback and len(user_message) > 8000:
+            current_message = user_message[:8000] + "\n...[kontekst qısaldıldı]"
+        
         payload = {
             "model": model_name,
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
+                {"role": "user", "content": current_message}
             ],
             "temperature": 0.7,
-            "max_tokens": 8192 if not is_fallback else 4096
+            "max_tokens": 8192 if not is_fallback else 2048
         }
         
         max_retries = 3
@@ -67,6 +72,18 @@ def call_groq(api_key: str, system_prompt: str, user_message: str, model: str = 
                     print(f"\n[⚠️ API Limiti (429) - {wait_time} san. gözlənilir. (Cəhd {attempt+1}/3)]")
                 time.sleep(wait_time)
                 continue
+
+            if response.status_code == 413:
+                # Request çox böyükdür — mesajı qısaldıb yenidən cəhd et
+                print(f"\n[⚠️ 413 Request too large [{model_name}]. Mesaj qısaldılır...]")
+                if is_fallback:
+                    current_message = current_message[:4000] + "\n...[qısaldıldı]"
+                    payload["messages"][1]["content"] = current_message
+                    payload["max_tokens"] = 1024
+                    continue
+                else:
+                    # Primary model 413 verdi → fallback-ə keç
+                    break
 
             if response.status_code != 200:
                 error_msg = response.json().get("error", {}).get("message", response.text)

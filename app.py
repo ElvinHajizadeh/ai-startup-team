@@ -191,7 +191,7 @@ def run_generation_cycle(idea: str, is_rebuild: bool = False):
         for i, task in enumerate(tasks):
             agent = st.session_state.agents_map[task.agent_key]
             st.write(f"⏳ **{agent.emoji} {agent.name}** işləyir...")
-            safe_ctx = st.session_state.context_accumulator[-6000:]
+            safe_ctx = st.session_state.context_accumulator[-3000:]
 
             try:
                 res = agent.run(task.description, context=safe_ctx)
