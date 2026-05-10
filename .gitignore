@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Mühit faylı (API key-ləri saxlayır - GitHub-a getməsin!)
+.env
+
+# Çıxış qovluqları (çox böyük ola bilər)
+outputs/
+scratch/
+
+# Streamlit lokal konfiqurasiya
+.streamlit/secrets.toml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Windows
+Thumbs.db
+desktop.ini
