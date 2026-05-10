@@ -279,9 +279,10 @@ if st.session_state.results:
                 run_generation_cycle(st.session_state.startup_idea_current, is_rebuild=True)
                 st.rerun()
 
-            elif any(kw in hq for kw in ["website hazirla", "website hazırla", "sayt hazırla",
-                                          "sayt yarat", "landing page", "web site yarat",
-                                          "sayt aç", "website aç", "sayt gör"]):
+            elif any(kw in hq for kw in [
+                "website", "sayt", "landing", "web site", "web page",
+                "vebsayt", "veb sayt", "homepage", "home page",
+            ]):
                 # 🌐 Website Deploy Rejimi
                 with st.chat_message("assistant"):
                     deploy_status = st.status("🌐 Website hazırlanır və deploy edilir...", expanded=True)
@@ -321,7 +322,7 @@ if st.session_state.results:
                     else:
                         deploy_status.update(label="❌ Deploy uğursuz oldu", state="error")
                         if not netlify_token:
-                            ans = "⚠️ **NETLIFY_TOKEN tapılmadı!** Streamlit Cloud Secrets-ə əlavə edin:\n```toml\nNETLIFY_TOKEN = \"...\"\n```\nToken almaq üçün: [app.netlify.com/user/applications](https://app.netlify.com/user/applications)"
+                            ans = "⚠️ **NETLIFY_TOKEN tapılmadı!** Streamlit Cloud Secrets-ə əlavə edin:\n```toml\nNETLIFY_TOKEN = \"...\"\n```"
                         else:
                             ans = f"❌ Deploy xətası: {deploy_result['error']}\n\nYenidən cəhd edin."
                         st.warning(ans)
