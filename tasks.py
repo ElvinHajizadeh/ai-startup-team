@@ -14,10 +14,6 @@ class Task:
     description: str
     expected_output: str
 
-def build_tasks(startup_idea: str) -> list:
-    """
-    Verilən startup ideyası üçün 6 agentin tapşırıqlarını yaradır.
-    """
 
 def build_website_task(request: str) -> "Task":
     """
