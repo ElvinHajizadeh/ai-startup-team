@@ -18,6 +18,51 @@ def build_tasks(startup_idea: str) -> list:
     """
     Verilən startup ideyası üçün 6 agentin tapşırıqlarını yaradır.
     """
+
+def build_website_task(request: str) -> "Task":
+    """
+    İstifadəçinin website tələbinə əsasən Frontend agenti üçün xüsusi tapşırıq yaradır.
+    Bu tapşırıq 6 agentli əsas prosesdən kənarda, ayrıca işlədir.
+    """
+    return Task(
+        agent_key="frontend",
+        title="Deployable Website Yaratma",
+        description=f"""
+İSTİFADƏÇİNİN TALƏBİ: {request}
+
+Tapşırıq:
+Sən PRO Frontend Mühəndisisən. İstifadəçinin tələbinə uyğun olaraq tam işlək, vizual cəhətdən MÜKƏMMƏl bir website yarat.
+
+TEXNIKI TƏLƏBLƏr:
+1. YALNİZ vahid `index.html` faylı (bütün CSS inline <style> tagı, bütün JS inline <script> tagı ilə)
+2. Xarici CDN kitabxanaları istifadə edə bilərsən (Tailwind CDN, FontAwesome, AOS.js, Chart.js və s.)
+3. Tam responsive dizayn (mobil + desktop)
+4. Müasir, zövqlü görünüş: gradient, glassmorphism, animasiyalar
+5. Real məzmun (placeholder "Lorem Ipsum" yox!)
+
+DİZAYN TƏLƏBLƏRİ:
+- Dark mode yaxud canlı rəng palitrası
+- Smooth animasiyalar (CSS transitions + AOS yaxud GSAP CDN)
+- Navigation, Hero section, Features, CTA düyməsi
+- Bütün məzmun Azərbaycan dilindədir (əgər başqa dil istənilməyibsə)
+
+ÇOX VACİB QAYDA (AUTO-CODING + DEPLOY):
+Yaratdığın bütün kodu MÜTLƏQ aşağıdakı XML formatında ver:
+<file path="index.html">
+<!DOCTYPE html>
+...bütün HTML, CSS, JS kodu...
+</html>
+</file>
+
+ƏSAS ŞƏRT: `index.html` faylı birbaşa brauzerdə açıldıqda tam işlək olmalıdır!
+""",
+        expected_output="Deployable index.html (bütün CSS və JS daxil)"
+    )
+
+def build_tasks(startup_idea: str) -> list:
+    """
+    Verilən startup ideyası üçün 6 agentin tapşırıqlarını yaradır.
+    """
     return [
         Task(
             agent_key="ceo",

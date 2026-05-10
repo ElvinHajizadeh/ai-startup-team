@@ -5,7 +5,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from agents import create_agents, call_groq
-from tasks import build_tasks
+from tasks import build_tasks, build_website_task
 from search_tool import get_market_research
 from file_extractor import extract_and_save_files
 from memory_manager import save_session, list_sessions, load_session
@@ -14,6 +14,7 @@ from github_pusher import push_to_github
 from image_generator import extract_image_prompts, generate_and_save_images
 from debate_mode import run_debate, get_debate_preset
 from email_sender import send_startup_email, build_investor_email
+from web_deployer import quick_website_deploy
 
 load_dotenv()
 
@@ -24,11 +25,12 @@ def get_secret(key: str, default: str = "") -> str:
     except Exception:
         return os.getenv(key, default)
 
-api_key      = get_secret("GROQ_API_KEY")
-hf_token     = get_secret("HF_TOKEN")
-github_token = get_secret("GITHUB_TOKEN")
-gmail_user   = get_secret("GMAIL_USER")
-gmail_pass   = get_secret("GMAIL_APP_PASSWORD")
+api_key       = get_secret("GROQ_API_KEY")
+hf_token      = get_secret("HF_TOKEN")
+github_token  = get_secret("GITHUB_TOKEN")
+gmail_user    = get_secret("GMAIL_USER")
+gmail_pass    = get_secret("GMAIL_APP_PASSWORD")
+netlify_token = get_secret("NETLIFY_TOKEN")
 
 st.set_page_config(page_title="AI Startup Team", page_icon="🚀", layout="wide")
 
@@ -264,6 +266,57 @@ if st.session_state.results:
                 st.session_state.chat_history.append({"role":"assistant","content":"🔄 **RE-BUILD başlayır...**"})
                 run_generation_cycle(st.session_state.startup_idea_current, is_rebuild=True)
                 st.rerun()
+
+            elif any(kw in hq for kw in ["website hazirla", "website hazırla", "sayt hazırla",
+                                          "sayt yarat", "landing page", "web site yarat",
+                                          "sayt aç", "website aç", "sayt gör"]):
+                # 🌐 Website Deploy Rejimi
+                with st.chat_message("assistant"):
+                    deploy_status = st.status("🌐 Website hazırlanır və deploy edilir...", expanded=True)
+                    with deploy_status:
+                        st.write("⚡ Frontend agent kodu yazır...")
+
+                        if not st.session_state.agents_map:
+                            st.session_state.agents_map = create_agents(api_key=api_key, language="az")
+
+                        frontend_agent = st.session_state.agents_map.get("frontend")
+                        if not frontend_agent:
+                            st.error("Frontend agenti tapılmadı.")
+                            st.stop()
+
+                        task = build_website_task(user_q)
+                        ctx = st.session_state.context_accumulator[-4000:] if st.session_state.context_accumulator else ""
+
+                        try:
+                            agent_result = frontend_agent.run(task.description, context=ctx)
+                        except Exception as e:
+                            agent_result = ""
+                            st.error(f"Agent xətası: {e}")
+
+                        st.write("🚀 Netlify-a deploy edilir...")
+                        deploy_result = quick_website_deploy(user_q, agent_result, netlify_token)
+
+                    if deploy_result["success"]:
+                        deploy_status.update(label="✅ Website canlıdır!", state="complete", expanded=False)
+                        site_url = deploy_result["url"]
+                        ans = (
+                            f"✅ **Website hazırdır!**\n\n"
+                            f"🔗 **Canlı Link:** {site_url}\n\n"
+                            f"📂 **Yaradılan fayllar:** {', '.join(deploy_result['files'].keys())}"
+                        )
+                        st.markdown(ans)
+                        st.link_button("🌐 Saytı aç", site_url, use_container_width=True)
+                    else:
+                        deploy_status.update(label="❌ Deploy uğursuz oldu", state="error")
+                        if not netlify_token:
+                            ans = "⚠️ **NETLIFY_TOKEN tapılmadı!** Streamlit Cloud Secrets-ə əlavə edin:\n```toml\nNETLIFY_TOKEN = \"...\"\n```\nToken almaq üçün: [app.netlify.com/user/applications](https://app.netlify.com/user/applications)"
+                        else:
+                            ans = f"❌ Deploy xətası: {deploy_result['error']}\n\nYenidən cəhd edin."
+                        st.warning(ans)
+
+                st.session_state.chat_history.append({"role": "assistant", "content": ans})
+                st.rerun()
+
             else:
                 with st.chat_message("assistant"):
                     with st.spinner("Cavab hazırlanır..."):
