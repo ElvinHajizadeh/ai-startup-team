@@ -118,21 +118,33 @@ with st.sidebar:
 
         # Email Göndər (Addım 9)
         with st.expander("📧 Email Göndər"):
-            to_email = st.text_input("Alıcı:", placeholder="investor@email.com")
-            subj = st.text_input("Mövzu:", value="Startup Layihəsi Haqqında Məlumat")
-            body_default = build_investor_email(
-                st.session_state.startup_idea_current,
-                st.session_state.results.get("ceo", ""),
-                "Startup"
-            )
-            email_body = st.text_area("Mətn:", value=body_default, height=150)
-            if st.button("📤 Göndər", use_container_width=True):
-                with st.spinner("Göndərilir..."):
-                    res = send_startup_email(to_email, subj, email_body, gmail_user, gmail_pass)
-                if res["success"]:
-                    st.success("✅ Email göndərildi!")
-                else:
-                    st.error(f"Xəta: {res['error']}")
+            if not gmail_user or not gmail_pass:
+                st.warning("⚠️ Gmail konfiqurasiya edilməyib.")
+                st.markdown("""
+**Aktivləşdirmək üçün:**
+1. [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) → Yeni parol yarat
+2. Streamlit Cloud → Settings → Secrets-ə əlavə et:
+```toml
+GMAIL_USER = "sən@gmail.com"
+GMAIL_APP_PASSWORD = "16 rəqəmli parol"
+```
+""")
+            else:
+                to_email = st.text_input("Alıcı:", placeholder="investor@email.com")
+                subj = st.text_input("Mövzu:", value="Startup Layihəsi Haqqında Məlumat")
+                body_default = build_investor_email(
+                    st.session_state.startup_idea_current,
+                    st.session_state.results.get("ceo", ""),
+                    "Startup"
+                )
+                email_body = st.text_area("Mətn:", value=body_default, height=150)
+                if st.button("📤 Göndər", use_container_width=True):
+                    with st.spinner("Göndərilir..."):
+                        res = send_startup_email(to_email, subj, email_body, gmail_user, gmail_pass)
+                    if res["success"]:
+                        st.success("✅ Email göndərildi!")
+                    else:
+                        st.error(f"Xəta: {res['error']}")
 
         st.markdown("---")
         if st.button("🗑️ Sıfırla", use_container_width=True):
